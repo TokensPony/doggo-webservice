@@ -119,6 +119,150 @@ class Session(APIView):
         logout(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class DogDetail(APIView):
+    permission_classes = (AllowAny,)
+    parser_classes = (parsers.JSONParser,parsers.FormParser)
+    renderer_classes = (renderers.JSONRenderer, )
+    
+    def get_object(self, pk):
+        try:
+            print 'Attempt Get ' + pk
+            return Dog.objects.get(pk=pk)
+        except Dog.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        print "DOG DETAIL REQUEST"
+        dog = self.get_object(pk)
+        print dog
+        json_data = serializers.serialize('json', [dog, ])
+        content = {'dog': json_data}
+        return HttpResponse(json_data, content_type='json')
+        #serializer = SnippetSerializer(snippet)
+        #return Response(serializer.data)
+
+    #def put(self, request, pk, format=None):
+    #    snippet = self.get_object(pk)
+    #    serializer = SnippetSerializer(snippet, data=request.data)
+    #    if serializer.is_valid():
+    #        serializer.save()
+    #        return Response(serializer.data)
+    #    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+		
+class DogList(APIView):
+    permission_classes = (AllowAny,)
+    parser_classes = (parsers.JSONParser,parsers.FormParser)
+    renderer_classes = (renderers.JSONRenderer, )
+	
+	
+    def get(self, request, format=None):
+        print "DOG LIST REQUEST MADE"
+        dogs = Dog.objects.all()
+        json_data = serializers.serialize('json', dogs)
+        content = {'dogs': json_data}
+        return HttpResponse(json_data, content_type='json')
+
+    def post(self, request, *args, **kwargs):
+        print 'REQUEST DATA'
+        print str(request.data)
+
+        name = request.data.get('name')
+        age = request.data.get('age')
+        gender = request.data.get('gender')
+        color = request.data.get('color')
+        favoritefood = request.data.get('favoritefood')
+        favoritetoy = request.data.get('favoritetoy')
+        #requestor = request.META['REMOTE_ADDR']
+
+        newDog = Dog(
+            name=name,
+            age=age,
+            gender=gender,
+            color=color,
+            favoritefood=favoritefood,
+            favoritetoy=favoritetoy
+            #requestor=requestor
+        )
+
+        try:
+            newDog.clean_fields()
+        except ValidationError as e:
+            print e
+            return Response({'success':False, 'error':e}, status=status.HTTP_400_BAD_REQUEST)
+
+        newDog.save()
+        print 'New Dog Logged from: ' #+ requestor
+        return Response({'success': True}, status=status.HTTP_200_OK)
+
+class BreedDetail(APIView):
+    permission_classes = (AllowAny,)
+    parser_classes = (parsers.JSONParser,parsers.FormParser)
+    renderer_classes = (renderers.JSONRenderer, )
+    
+    def get_object(self, pk):
+        try:
+            print 'Attempt Get ' + pk
+            return Breed.objects.get(pk=pk)
+        except Breed.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        print "BREED DETAIL REQUEST"
+        breed = self.get_object(pk)
+        print breed
+        json_data = serializers.serialize('json', [breed, ])
+        content = {'breed': json_data}
+        return HttpResponse(json_data, content_type='json')
+
+class BreedList(APIView):
+    permission_classes = (AllowAny,)
+    parser_classes = (parsers.JSONParser,parsers.FormParser)
+    renderer_classes = (renderers.JSONRenderer, )
+	
+	
+    def get(self, request, format=None):
+        breeds = Breed.objects.all()
+        json_data = serializers.serialize('json', breeds)
+        content = {'breeds': json_data}
+        return HttpResponse(json_data, content_type='json')
+
+    def post(self, request, *args, **kwargs):
+        print 'REQUEST DATA'
+        print str(request.data)
+
+        name = request.data.get('name')
+        size = request.data.get('size')
+        friendliness = request.data.get('friendliness')
+        trainability = request.data.get('trainability')
+        sheddingamount = request.data.get('sheddingamount')
+        exerciseneeds= request.data.get('exerciseneeds')
+        #requestor = request.META['REMOTE_ADDR']
+
+        newBreed = Breed(
+            name=name,
+            size=size,
+            friendliness=friendliness,
+            trainability=trainability,
+            sheddingamount=sheddingamount,
+            exerciseneeds=exerciseneeds
+            #requestor=requestor
+        )
+
+        try:
+            newBreed.clean_fields()
+        except ValidationError as e:
+            print e
+            return Response({'success':False, 'error':e}, status=status.HTTP_400_BAD_REQUEST)
+
+        newBreed.save()
+        print 'New Breed Logged from: ' #+ requestor
+        return Response({'success': True}, status=status.HTTP_200_OK)
+
 class Events(APIView):
     permission_classes = (AllowAny,)
     parser_classes = (parsers.JSONParser,parsers.FormParser)
