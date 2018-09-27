@@ -141,13 +141,43 @@ class DogDetail(APIView):
         #serializer = SnippetSerializer(snippet)
         #return Response(serializer.data)
 
-    #def put(self, request, pk, format=None):
-    #    snippet = self.get_object(pk)
-    #    serializer = SnippetSerializer(snippet, data=request.data)
-    #    if serializer.is_valid():
-    #        serializer.save()
-    #        return Response(serializer.data)
-    #    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, pk, format=None):
+        dog = self.get_object(pk)
+        #json_data = serializers.serialize('json', [dog, data=request.data])
+        #if json_data.is_valid():
+        #    json_data.save()
+        #    return Response(json_data.data)
+        #return Response(json_data.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        name = request.data.get('name')
+        breed = Breed.objects.get(pk = request.data.get('breed'))
+        age = request.data.get('age')
+        gender = request.data.get('gender')
+        color = request.data.get('color')
+        favoritefood = request.data.get('favoritefood')
+        favoritetoy = request.data.get('favoritetoy')
+        #requestor = request.META['REMOTE_ADDR']
+
+        #newDog = Dog(
+        dog.name=name
+        dog.breed=breed
+        dog.age=age
+        dog.gender=gender
+        dog.color=color
+        dog.favoritefood=favoritefood
+        dog.favoritetoy=favoritetoy
+        #requestor=requestor
+        #)
+
+        try:
+            dog.clean_fields()
+        except ValidationError as e:
+            print e
+            return Response({'success':False, 'error':e}, status=status.HTTP_400_BAD_REQUEST)
+
+        dog.save()
+        print 'Dog Was U P D A T E D ' #+ requestor
+        return Response({'success': True}, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
@@ -172,6 +202,7 @@ class DogList(APIView):
         print str(request.data)
 
         name = request.data.get('name')
+        breed = Breed.objects.get(pk = request.data.get('breed'))
         age = request.data.get('age')
         gender = request.data.get('gender')
         color = request.data.get('color')
@@ -181,6 +212,7 @@ class DogList(APIView):
 
         newDog = Dog(
             name=name,
+            breed=breed ,
             age=age,
             gender=gender,
             color=color,
@@ -218,6 +250,11 @@ class BreedDetail(APIView):
         json_data = serializers.serialize('json', [breed, ])
         content = {'breed': json_data}
         return HttpResponse(json_data, content_type='json')
+        
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class BreedList(APIView):
     permission_classes = (AllowAny,)
