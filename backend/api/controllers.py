@@ -251,6 +251,39 @@ class BreedDetail(APIView):
         content = {'breed': json_data}
         return HttpResponse(json_data, content_type='json')
         
+    def put(self, request, pk, format=None):
+        breed = self.get_object(pk)
+        #print 'REQUEST DATA'
+        #print str(request.data)
+
+        name = request.data.get('name')
+        size = request.data.get('size')
+        friendliness = request.data.get('friendliness')
+        trainability = request.data.get('trainability')
+        sheddingamount = request.data.get('sheddingamount')
+        exerciseneeds = request.data.get('exerciseneeds')
+        #requestor = request.META['REMOTE_ADDR']
+
+        #newBreed = Breed(
+        breed.name=name
+        breed.size=size
+        breed.friendliness=friendliness
+        breed.trainability=trainability
+        breed.sheddingamount=sheddingamount
+        breed.exerciseneeds=exerciseneeds
+        #requestor=requestor
+        #)
+
+        try:
+            breed.clean_fields()
+        except ValidationError as e:
+            print e
+            return Response({'success':False, 'error':e}, status=status.HTTP_400_BAD_REQUEST)
+
+        breed.save()
+        print ' Breed U P D A T E D ' #+ requestor
+        return Response({'success': True}, status=status.HTTP_200_OK)
+        
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
         snippet.delete()
